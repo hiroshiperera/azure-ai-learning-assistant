@@ -12,6 +12,12 @@ pip install streamlit
 
 ---
 
+## Add to requirements.txt
+
+pip freeze > requirements.txt
+
+---
+
 ## Title
 
 st.title()
