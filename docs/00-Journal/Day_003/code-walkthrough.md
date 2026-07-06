@@ -1,367 +1,379 @@
-# Code Walkthrough - Day 002
-# Adding Conversation History to the Azure OpenAI Chatbot
+# Code Walkthrough - Day 003
+# Building the First Streamlit Web Application
 
 ## 📘 About This Document
 
-This document explains the changes made to the Azure OpenAI Terminal Chatbot on Day 002.
+This document explains the implementation completed on Day 003 of the Azure AI Learning Journey.
 
-On Day 001, the chatbot was able to send user prompts to Azure OpenAI and display responses. However, every request was treated as a completely new conversation because previous messages were not preserved.
+On Day 002, the Azure OpenAI chatbot was improved by adding conversation history, allowing the application to maintain context during a terminal session.
 
-The objective of Day 002 was to introduce **conversation history**, allowing the chatbot to remember previous interactions within the same session.
+The objective of Day 003 was to introduce **Streamlit**, understand how Streamlit applications work, and build the first web interface that will eventually replace the terminal interface.
+
+No Azure OpenAI integration was performed today. The focus was entirely on understanding Streamlit fundamentals.
 
 ---
 
 # Objective
 
-Convert the chatbot from a **stateless** application into a **stateful** conversational chatbot.
+Learn the fundamentals of Streamlit by creating the first web application and understanding how Python applications can be transformed into interactive web interfaces.
 
 ---
 
-# What Was Wrong With the Previous Implementation?
+# Why Streamlit?
 
-In the original implementation, the `messages` list was created inside the `ask_chatbot()` function.
+Until now, the chatbot was only accessible through the terminal.
+
+```
+==================================================
+
+Azure AI Learning Assistant
+
+==================================================
+
+You:
+```
+
+Although this was sufficient for learning Azure OpenAI, real users expect graphical interfaces instead of command-line applications.
+
+Streamlit allows developers to build modern web applications using only Python, without requiring HTML, CSS, or JavaScript.
+
+---
+
+# What is Streamlit?
+
+Streamlit is an open-source Python framework designed for building data science and AI web applications.
+
+Unlike traditional web frameworks, Streamlit automatically converts Python code into a web application.
+
+This makes it an excellent choice for rapidly building AI prototypes, dashboards, and chat applications.
+
+---
+
+# Installing Streamlit
+
+Streamlit was installed into the project's virtual environment.
+
+```
+pip install streamlit
+```
+
+After installation, the project dependencies were updated using:
+
+```
+pip freeze > requirements.txt
+```
+
+This ensures that anyone cloning the repository can recreate the same Python environment.
+
+---
+
+# Creating the First Streamlit Application
+
+A new file was created.
+
+```
+streamlit_app.py
+```
+
+This file serves as the entry point for the web application.
+
+The first version of the application contained:
 
 ```python
-messages=[
-    {
-        "role":"system",
-        "content":"You are a helpful AI assistant."
-    },
-    {
-        "role":"user",
-        "content":user_message
-    }
-]
+import streamlit as st
+
+st.title("🤖 Azure AI Learning Assistant")
+
+st.write("Welcome to my first Streamlit application!")
+
+st.write("This application will eventually become my AI-102 Learning Assistant.")
 ```
 
-Every time the function was called:
-
-1. A new `messages` list was created.
-2. Previous conversations were discarded.
-3. Azure OpenAI only received the current question.
-
-As a result, the chatbot had no memory of earlier interactions.
-
-Example:
-
-```
-User:
-My name is Hiroshi.
-
-AI:
-Nice to meet you.
-
-User:
-What is my name?
-
-AI:
-I don't know.
-```
-
-Although this behavior seems like the model forgot the conversation, the real reason is that the application never sent the previous messages back to Azure OpenAI.
+This demonstrated how Python code can generate a webpage without writing HTML.
 
 ---
 
-# Understanding Conversation History
+# Running the Application
 
-Large Language Models do not automatically remember previous conversations.
+Unlike a standard Python program, a Streamlit application is started using:
 
-Instead, the application is responsible for maintaining the conversation history and sending it with every request.
-
-The conversation history is represented as a Python list.
-
-```python
-messages = [
-    {
-        "role": "system",
-        "content": "You are a helpful AI assistant."
-    }
-]
+```
+streamlit run streamlit_app.py
 ```
 
-Each item in the list represents one message exchanged during the conversation.
+Once executed, Streamlit starts a local web server and opens the application in the browser.
+
+Default URL:
+
+```
+http://localhost:8501
+```
 
 ---
 
-# New Architecture
+# Understanding the Architecture
+
+Unlike the terminal chatbot, Streamlit introduces a browser between the user and the Python application.
 
 ```
                 User
                   │
                   ▼
-            app.py
+             Web Browser
                   │
                   ▼
-          ask_chatbot()
+         Streamlit Server
                   │
                   ▼
-        Conversation History
-          (messages list)
+        streamlit_app.py
                   │
                   ▼
-      OpenAI Python SDK
+         Streamlit Components
                   │
                   ▼
-       Azure OpenAI Service
-                  │
-                  ▼
-      GPT-5.4-mini Deployment
-                  │
-                  ▼
-         AI Generated Response
-                  │
-                  ▼
-        Conversation History
-        (Assistant Response)
-                  │
-                  ▼
-               Terminal
+            Rendered Web Page
 ```
 
-The application now maintains the conversation history before and after every request.
+The browser communicates with the Streamlit server, which executes the Python script and generates the user interface.
 
 ---
 
-# Step 1 - Create the Conversation History
+# Streamlit Components Learned
 
-Instead of creating the messages list inside the function, it is created once when the application starts.
+Several fundamental Streamlit components were explored.
+
+## Page Title
 
 ```python
-messages = [
-    {
-        "role": "system",
-        "content": "You are a helpful AI assistant."
-    }
-]
+st.title("🤖 Azure AI Learning Assistant")
 ```
 
-Why?
-
-Creating the list once allows the application to preserve previous messages throughout the lifetime of the program.
+Displays the main title of the application.
 
 ---
 
-# Step 2 - Store the User Message
-
-Before sending a request to Azure OpenAI, the user's message is added to the conversation history.
+## Header
 
 ```python
-messages.append(
-    {
-        "role": "user",
-        "content": user_message
-    }
-)
+st.header("Welcome")
 ```
 
-This ensures that Azure receives the latest user input together with the previous conversation.
+Creates a large section heading.
 
 ---
 
-# Step 3 - Send the Complete Conversation
-
-Previously, only the latest message was sent.
-
-Now the entire conversation is sent.
+## Subheader
 
 ```python
-response = client.chat.completions.create(
-    model=AZURE_OPENAI_DEPLOYMENT,
-    messages=messages
-)
+st.subheader("My AI-102 Learning Journey")
 ```
 
-The `messages` variable now contains every message exchanged since the application started.
+Creates a smaller section heading.
 
 ---
 
-# Step 4 - Save the Assistant's Response
-
-After Azure OpenAI generates a response, the assistant's reply is also stored.
+## Write
 
 ```python
-answer = response.choices[0].message.content
-
-messages.append(
-    {
-        "role": "assistant",
-        "content": answer
-    }
-)
+st.write("Hello World")
 ```
 
-Saving the assistant's reply allows future requests to include both sides of the conversation.
+The most flexible output function.
+
+It can display:
+
+- Text
+- Numbers
+- Lists
+- Dictionaries
+- DataFrames
+- Variables
 
 ---
 
-# How the Conversation Grows
-
-When the application starts:
+## Markdown
 
 ```python
-messages = [
-    {
-        "role": "system",
-        "content": "You are a helpful AI assistant."
-    }
-]
+st.markdown("---")
 ```
 
-After the user says:
+Supports Markdown formatting.
+
+Useful for:
+
+- Horizontal lines
+- Lists
+- Tables
+- Rich text
+
+---
+
+## Status Messages
+
+Several built-in message components were explored.
+
+```python
+st.success()
+```
+
+Displays a green success message.
+
+```python
+st.info()
+```
+
+Displays an informational message.
+
+```python
+st.warning()
+```
+
+Displays a warning message.
+
+```python
+st.error()
+```
+
+Displays an error message.
+
+These components help provide clear feedback to users.
+
+---
+
+# Understanding Streamlit's Execution Model
+
+One of the most important concepts learned today is that Streamlit does **not** behave like a normal Python script.
+
+A traditional Python application executes once.
 
 ```
-Hello
-```
-
-```
-System
+Run Program
 
 ↓
 
+Execute Code
+
+↓
+
+Exit
+```
+
+A Streamlit application behaves differently.
+
+Whenever the user interacts with the interface, Streamlit reruns the entire script from top to bottom.
+
+```
+User Action
+
+↓
+
+Streamlit
+
+↓
+
+Run Entire Script Again
+
+↓
+
+Update Interface
+```
+
+Understanding this execution model is essential before learning Session State and building interactive applications.
+
+---
+
+# Comparing Terminal and Streamlit Applications
+
+Terminal Application
+
+```
 User
-```
-
-After Azure replies:
-
-```
-System
 
 ↓
 
+Terminal
+
+↓
+
+Python
+
+↓
+
+Azure OpenAI
+
+↓
+
+Terminal Output
+```
+
+Streamlit Application
+
+```
 User
 
 ↓
 
-Assistant
-```
-
-After another user question:
-
-```
-System
+Browser
 
 ↓
 
-User
+Streamlit
 
 ↓
 
-Assistant
+Python
 
 ↓
 
-User
+Azure OpenAI
 ```
 
-The list continues to grow as long as the application is running.
+The backend logic remains the same.
 
----
+Only the user interface changes.
 
-# Understanding the Message Roles
-
-Every message contains two properties.
-
-## System
-
-Defines the behaviour of the AI.
-
-Example
-
-```
-You are a helpful AI assistant.
-```
-
----
-
-## User
-
-Represents input from the user.
-
-Example
-
-```
-What is Azure OpenAI?
-```
-
----
-
-## Assistant
-
-Represents the AI-generated response.
-
-Example
-
-```
-Azure OpenAI is Microsoft's managed service...
-```
-
-The conversation is simply an ordered list of these three message types.
-
----
-
-# Why This Works
-
-Azure OpenAI does not store conversation history.
-
-Instead, the application sends the complete conversation every time a request is made.
-
-The model reads the conversation history and generates a response based on all previous messages.
-
-This is why the chatbot can answer questions such as:
-
-```
-User:
-My name is Hiroshi.
-
-AI:
-Nice to meet you.
-
-User:
-What is my name?
-
-AI:
-Your name is Hiroshi.
-```
-
----
-
-# Limitations
-
-The current implementation stores conversation history only while the application is running.
-
-When the application closes, the conversation is lost.
-
-In future lessons, conversation history can be stored using:
-
-- Files
-- Databases
-- Redis
-- Azure Cosmos DB
-- Azure AI Memory solutions
+This separation of concerns is an important software engineering principle.
 
 ---
 
 # Lessons Learned
 
-Today I learned that Large Language Models do not automatically remember previous conversations.
+Today I learned that Streamlit is a Python framework for rapidly building web applications.
 
-Conversation memory is created by the application, not by the model.
+Unlike traditional web development, Streamlit allows developers to create interactive interfaces without HTML, CSS, or JavaScript.
 
-By maintaining a list of messages and sending the complete conversation with every request, a chatbot can support multi-turn conversations and maintain context throughout the session.
+I also learned that Streamlit reruns the entire Python script whenever a user interacts with the application.
+
+This behaviour is different from standard Python programs and explains why Session State will become important in future lessons.
+
+---
+
+# What's Next?
+
+The current Streamlit application only displays static content.
+
+In the next lesson, the following features will be implemented:
+
+- User input
+- Chat interface
+- Session State
+- Chat messages
+- Integration with the existing Azure OpenAI chatbot
+- Conversation history inside the web application
 
 ---
 
 # Summary
 
-Today's enhancement transformed the chatbot from a stateless application into a stateful conversational assistant.
+Day 003 introduced Streamlit as the frontend technology for the Azure AI Learning Assistant.
 
-Key improvements include:
+Key accomplishments include:
 
-- Introduced conversation history.
-- Stored user messages.
-- Stored assistant responses.
-- Sent the complete conversation to Azure OpenAI.
-- Enabled multi-turn conversations.
-- Improved understanding of how chat-based AI applications work.
+- Installed Streamlit.
+- Created the first Streamlit application.
+- Learned how to run Streamlit applications.
+- Explored the core Streamlit components.
+- Understood Streamlit's execution model.
+- Compared terminal and web application architectures.
 
-This implementation forms the foundation for future enhancements such as Streamlit interfaces, persistent chat history, Retrieval-Augmented Generation (RAG), and AI Agents.
+This lesson establishes the foundation for building a professional web-based Azure AI chatbot in the upcoming lessons.
