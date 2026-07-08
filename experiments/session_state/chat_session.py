@@ -1,24 +1,22 @@
 import streamlit as st
-from src.chatbot import ask_chatbot
 
 st.title("🤖 Azure AI Learning Assistant")
 
-# Create chat history only once
+# Create the chat history only once
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # Display previous messages
 for message in st.session_state.messages:
-
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-# Chat input
+# Get user input
 user_input = st.chat_input("Ask me anything...")
 
 if user_input:
 
-    # Save user message
+    # Save the user message
     st.session_state.messages.append(
         {
             "role": "user",
@@ -26,16 +24,6 @@ if user_input:
         }
     )
 
-    # Get response from Azure OpenAI
-    response = ask_chatbot(user_input)
-
-    # Save assistant response
-    st.session_state.messages.append(
-        {
-            "role": "assistant",
-            "content": response
-        }
-    )
-
-    # Refresh page
-    st.rerun()
+    # Display the user message
+    with st.chat_message("user"):
+        st.write(user_input)
