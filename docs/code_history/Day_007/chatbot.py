@@ -72,7 +72,8 @@ def ask_chatbot(user_message: str) -> str:
 
 '''
 
-'''-----------------Day 5-----------------'''
+'''-----------------Day 5-----------------
+Today we investigated about temperature and max_completion_tokens parameters'''
 
 from openai import OpenAI
 import streamlit as st
