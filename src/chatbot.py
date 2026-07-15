@@ -90,10 +90,17 @@ client = OpenAI(
 
 
 def ask_chatbot(messages: list[dict]):
-    st.json(st.session_state.messages)
+
+    '''st.json(st.session_state.messages)'''
+
+
     response = client.chat.completions.create(
+
         model=AZURE_OPENAI_DEPLOYMENT,
         messages=messages,
+
+        temperature=0,
+        max_completion_tokens=300
     )
 
     print(type(response.choices[0].message.content))

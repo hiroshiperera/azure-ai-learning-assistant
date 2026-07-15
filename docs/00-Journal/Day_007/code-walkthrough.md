@@ -1,118 +1,101 @@
-# Code Walkthrough - Day 006
-# Introducing Prompt Management
+# Code Walkthrough - Day 007
+# Configuring Azure OpenAI Model Parameters
 
-## 📘 About This Document
+## About This Document
 
-This document explains the changes made to the Azure AI Learning Assistant during Day 006.
+This document explains the code changes introduced during Day 007.
 
-The primary objective was to introduce Prompt Engineering while improving the application's architecture.
-
-Rather than storing the System Prompt directly inside the chatbot or user interface, prompts are now managed in a dedicated module.
+The primary objective was to configure Azure OpenAI model parameters and understand how they influence response generation.
 
 ---
 
 # Objective
 
-Refactor the application so that:
-
-- Prompt definitions are separated from chatbot logic.
-- The chatbot becomes independent of specific prompts.
-- Prompt management becomes reusable and maintainable.
+Enhance the chatbot by explicitly configuring model parameters rather than relying on default settings.
 
 ---
 
-# Previous Design
+# Previous Implementation
 
-Previously the System Prompt was written directly inside the application.
+Previously, the chatbot simply called Azure OpenAI using:
 
 ```python
-{
-    "role": "system",
-    "content": "You are a helpful AI assistant."
-}
+response = client.chat.completions.create(
+    model=AZURE_OPENAI_DEPLOYMENT,
+    messages=messages,
+)
 ```
 
-Although functional, this approach makes it difficult to reuse prompts across different AI applications.
+The model used its default behaviour.
 
 ---
 
-# New Design
+# Updated Implementation
 
-A new module was introduced.
-
-```
-src/
-    prompts.py
-```
-
-This module stores reusable prompt templates.
-
-Example:
+The API call was modified to include model parameters.
 
 ```python
-SYSTEM_PROMPT = """
-You are an Azure AI tutor helping students prepare for the Microsoft AI-102 certification.
-
-Explain concepts clearly.
-Use simple language.
-Provide practical examples.
-"""
+response = client.chat.completions.create(
+    model=AZURE_OPENAI_DEPLOYMENT,
+    messages=messages,
+    temperature=0.2,
+    max_completion_tokens=300
+)
 ```
 
 ---
 
-# Updating Streamlit
+# Temperature
 
-Instead of hardcoding the prompt:
+Temperature was introduced to make responses more deterministic.
 
-```python
-{
-    "role":"system",
-    "content":"You are a helpful AI assistant."
-}
-```
-
-the application now imports:
+A value of:
 
 ```python
-from src.prompts import SYSTEM_PROMPT
+temperature = 0.2
 ```
 
-and uses:
-
-```python
-{
-    "role":"system",
-    "content":SYSTEM_PROMPT
-}
-```
+was selected because the chatbot is designed as an AI-102 learning assistant.
 
 ---
 
-# Why This Change?
+# Max Completion Tokens
 
-Prompt definitions are configuration.
+The chatbot now limits responses using:
 
-They are not business logic.
+```python
+max_completion_tokens = 300
+```
 
-Moving prompts into a separate module improves maintainability and encourages reuse.
+This provides reasonably detailed answers while avoiding unnecessarily long responses.
 
 ---
 
-# Benefits
+# API Compatibility
 
-The application can now support multiple AI personalities.
+While implementing this feature, the application initially used:
 
-For example:
+```python
+max_tokens
+```
 
-- AI-102 Tutor
-- Travel Assistant
-- Math Teacher
-- Coding Assistant
+The Azure OpenAI API returned an error indicating that the deployed GPT-5 model requires:
 
-Only the prompt changes.
+```python
+max_completion_tokens
+```
 
-No chatbot code needs to be modified.
+The code was updated accordingly.
+
+---
+
+# Software Engineering Observation
+
+Today's implementation demonstrated the importance of:
+
+- Reading API documentation.
+- Understanding model compatibility.
+- Responding appropriately to runtime errors.
 
 ---
 
@@ -127,7 +110,7 @@ Streamlit
 
 ↓
 
-SYSTEM_PROMPT
+Session State
 
 ↓
 
@@ -139,34 +122,29 @@ Azure OpenAI
 
 ↓
 
+Temperature
+
+↓
+
+Max Completion Tokens
+
+↓
+
 Response
 ```
 
 ---
 
-# Software Engineering Principles
-
-Today's refactoring applied:
-
-- Separation of Concerns
-- Configuration Management
-- Reusability
-- Maintainability
-
----
-
 # Lessons Learned
 
-I learned that prompts should be treated as configurable resources rather than hardcoded strings.
+Today's work showed that model parameters are an important part of application behaviour.
 
-Separating prompts from application logic makes the application easier to extend and maintain.
+Rather than modifying the AI model itself, developers configure response characteristics using parameter values.
 
 ---
 
 # Summary
 
-Today's refactoring introduced dedicated prompt management through `prompts.py`.
+The chatbot now explicitly configures Azure OpenAI model parameters.
 
-The chatbot now focuses only on communicating with Azure OpenAI, while prompt definitions are managed independently.
-
-This architecture prepares the application for Prompt Templates, AI Agents, and Retrieval-Augmented Generation in future lessons.
+These settings improve response consistency and prepare the application for future enhancements such as configurable AI behaviour and user-adjustable settings.
