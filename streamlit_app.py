@@ -3,17 +3,32 @@ from src.chatbot import ask_chatbot
 
 st.title("🤖 Azure AI Learning Assistant")
 
-# Create chat history only once
+# -----------------------------
+# Create conversation history
+# -----------------------------
 if "messages" not in st.session_state:
-    st.session_state.messages = []
 
-# Display previous messages
+    st.session_state.messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful AI assistant."
+        }
+    ]
+
+# -----------------------------
+# Display conversation
+# -----------------------------
 for message in st.session_state.messages:
 
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
+    # Don't display the system prompt
+    if message["role"] != "system":
 
-# Chat input
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+# -----------------------------
+# Chat Input
+# -----------------------------
 user_input = st.chat_input("Ask me anything...")
 
 if user_input:
@@ -25,10 +40,10 @@ if user_input:
             "content": user_input
         }
     )
-
-    # Get response from Azure OpenAI
-    response = ask_chatbot(user_input)
-
+    
+    # Send the COMPLETE conversation to Azure OpenAI
+    response = ask_chatbot(st.session_state.messages)
+    
     # Save assistant response
     st.session_state.messages.append(
         {
@@ -36,6 +51,6 @@ if user_input:
             "content": response
         }
     )
-
-    # Refresh page
+    '''st.json(st.session_state.messages)'''
+    # Refresh the page to display the latest messages
     st.rerun()
